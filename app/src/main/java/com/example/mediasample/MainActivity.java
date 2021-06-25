@@ -1,13 +1,15 @@
 package com.example.mediasample;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.media.MediaParser;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.android.material.switchmaterial.SwitchMaterial;
 
 import java.io.IOException;
 
@@ -49,8 +51,17 @@ public class MainActivity extends AppCompatActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        // スイッチ取得
+        SwitchMaterial loopSwitch = findViewById(R.id.swLoop);
+        // リスナ設定
+        loopSwitch.setOnCheckedChangeListener(new LoopSwitchChangedListener());
     }
 
+    /**
+     * 再生ボタンタップ字の処理
+     * @param view
+     */
     public void onPlayButtonClick(View view) {
 
         Button button = findViewById(R.id.btPlay);
@@ -65,6 +76,33 @@ public class MainActivity extends AppCompatActivity {
             // プレーヤーを再生し、ラベルを「一時停止」に変更
             this.player.start();
             button.setText(R.string.bt_play_pause);
+        }
+    }
+
+    /**
+     * 「<<」ボタンタップ時の処理
+     * @param view
+     */
+    public void onBackButtonClick(View view) {
+        // 再生位置を先頭に変更
+        this.player.seekTo(0);
+    }
+
+    /**
+     * 「>>」ボタンタップ時の処理
+     * @param view
+     */
+    public void onForwardButtonClick(View view) {
+
+        // 現在再生中のメディアの長さを取得
+        int duration = this.player.getDuration();
+
+        // 再生位置を終焉に変更
+        this.player.seekTo(duration);
+
+        // 再生中でなければ再生実行
+        if (!this.player.isPlaying()) {
+            this.player.start();
         }
     }
 
@@ -111,9 +149,23 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCompletion(MediaPlayer mp) {
-            // 再生ボタンのラベルを「再生」に変更
-            Button button = findViewById(R.id.btPlay);
-            button.setText(R.string.bt_play_play);
+            if (!player.isLooping()) {
+                // 再生ボタンのラベルを「再生」に変更
+                Button button = findViewById(R.id.btPlay);
+                button.setText(R.string.bt_play_play);
+            }
+        }
+    }
+
+    /**
+     * スイッチ変更時のリスナ
+     */
+    private class LoopSwitchChangedListener implements CompoundButton.OnCheckedChangeListener {
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            // ループ設定
+            player.setLooping(isChecked);
         }
     }
 }
